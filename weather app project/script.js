@@ -1,29 +1,60 @@
-const apiKey = '8b764ae47980cafcb6ad87d7426c4498';
-const apiUrl = 'https://api.openweathermap.org/data/2.5/weather?q={lagos%20}'; 
-const locationInput = document.getElementById('locationInput');
-const searchButton = document.getElementById('searchButton');
-const locationElement = document.getElementById('location');
-const temperatureElement = document.getElementById('temperature');
-const descriptionElement = document.getElementById('description');
+const apiKey = "985e0df057bccfff41aedd0e4921c21a";
+const geoApiUrl = "https://api.openweathermap.org/geo/1.0/direct";
+const weatherApiUrl = "https://api.openweathermap.org/data/3.0/onecall";
 
-searchButton.addEventListener('click', () => {
-    const location = locationInput.value;
-    if (location) {
-        fetchWeather(location);
+const tempElement = document.querySelector(".temp");
+const weatherElement = document.querySelector(".weather");
+const searchBar = document.querySelector(".search-bar");
+const searchButton = document.querySelector(".submitBtn");
+
+async function getCityCoordinates(city) {
+  try {
+    const response = await fetch(
+      `${geoApiUrl}?q=${city}&limit=1&appid=${apiKey}`
+    );
+    const data = await response.json();
+
+    if (data.length === 0) {
+      throw new Error("City not found");
     }
+
+    return { lat: data[0].lat, lon: data[0].lon };
+  } catch (error) {
+    alert(error.message);
+    return null;
+  }
+}
+
+async function getWeatherData(city) {
+  const coordinates = await getCityCoordinates(city);
+  if (!coordinates) return;
+
+  try {
+    const { lat, lon } = coordinates;
+
+    const response = await fetch(
+      `${weatherApiUrl}?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric` // This line
+    );
+    const data = await response.json();
+
+    tempElement.textContent = `${Math.round(data.current.temp)}°C`;
+    weatherElement.textContent = data.current.weather[0].main;
+  } catch (error) {
+    alert("Error fetching weather data");
+  }
+}
+
+searchButton.addEventListener("click", () => {
+  console.log("search button clicked");
+  const city = searchBar.value.trim();
+
+  if (city) getWeatherData(city);
 });
 
-function fetchWeather(location) {
-    const url = `${apiUrl}?q=${location}&appid=${apiKey}&units=metric`;
+searchBar.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    const city = searchBar.value.trim();
+    if (city) getWeatherData(city);
+  }
+});
 
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            locationElement.textContent = data.name;
-            temperatureElement.textContent = `${Math.round(data.main.temp)}°C`;
-            descriptionElement.textContent = data.weather[0].description;
-        })
-        .catch(error => {
-            console.error('Error fetching weather data:', error);
-        });
-}
