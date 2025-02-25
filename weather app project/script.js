@@ -1,6 +1,6 @@
 const apiKey = "985e0df057bccfff41aedd0e4921c21a";
 const geoApiUrl = "https://api.openweathermap.org/geo/1.0/direct";
-const weatherApiUrl = "https://api.openweathermap.org/data/3.0/onecall";
+const weatherApiUrl = "https://api.openweathermap.org/data/2.5/weather";
 
 const tempElement = document.querySelector(".temp");
 const weatherElement = document.querySelector(".weather");
@@ -32,14 +32,17 @@ async function getWeatherData(city) {
   try {
     const { lat, lon } = coordinates;
 
+    console.log(coordinates)
+
     const response = await fetch(
       `${weatherApiUrl}?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric` // This line
     );
     const data = await response.json();
 
-    tempElement.textContent = `${Math.round(data.current.temp)}°C`;
-    weatherElement.textContent = data.current.weather[0].main;
+    tempElement.textContent = `${Math.round(data.main.temp)}°C`;
+    weatherElement.textContent = data.weather[0].main;
   } catch (error) {
+    console.log(error)
     alert("Error fetching weather data");
   }
 }
